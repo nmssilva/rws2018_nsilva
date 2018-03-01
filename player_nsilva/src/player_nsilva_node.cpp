@@ -1,25 +1,23 @@
-#include <iostream>                                                                                     
+#include <iostream>
 
 class Player
 {
-    public:
-
+  public:
     Player(std::string name)
     {
         this->name = name;
     }
 
-
     std::string name;
 
-    private:
-
+  private:
 };
 
 int main()
 {
 
     std::string player_name = "nsilva";
+
     //Creating an instance of class Player
     Player player(player_name);
 
