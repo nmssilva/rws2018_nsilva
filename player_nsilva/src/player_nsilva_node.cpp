@@ -87,8 +87,8 @@ public:
     tf::Transform transform;
 
     //Update position
-    x += ((double)rand() / (RAND_MAX)) - 0.5;
-    y += ((double)rand() / (RAND_MAX)) - 0.5;
+    x += (((double)rand() / (RAND_MAX)) - 0.5) * 0.1;
+    y += (((double)rand() / (RAND_MAX)) - 0.5) * 0.1;
 
     transform.setOrigin(tf::Vector3(x, y, 0.0));
 
