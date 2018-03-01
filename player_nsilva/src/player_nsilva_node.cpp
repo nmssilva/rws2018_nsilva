@@ -64,6 +64,11 @@ public:
   boost::shared_ptr<Team> red_team;
   boost::shared_ptr<Team> green_team;
   boost::shared_ptr<Team> blue_team;
+
+  boost::shared_ptr<Team> my_team;
+  boost::shared_ptr<Team> my_preys;
+  boost::shared_ptr<Team> my_hunters;
+
   tf::TransformBroadcaster br;
 
   double x, y;
@@ -76,6 +81,25 @@ public:
 
     x = y = 0.0;
 
+    if (red_team->playerBelongsToTeam(name))
+    {
+      my_team = red_team;
+      my_preys = green_team;
+      my_hunters = blue_team;
+    }
+    else if (green_team->playerBelongsToTeam(name))
+    {
+      my_team = green_team;
+      my_preys = blue_team;
+      my_hunters = red_team;
+    }
+    else if (blue_team->playerBelongsToTeam(name))
+    {
+      my_team = blue_team;
+      my_preys = red_team;
+      my_hunters = green_team;
+    }
+
     setTeamName(argin_team);
 
     printReport();
@@ -87,8 +111,8 @@ public:
     tf::Transform transform;
 
     //Update position
-    x += (((double)rand() / (RAND_MAX)) - 0.5) * 0.1;
-    y += (((double)rand() / (RAND_MAX)) - 0.5) * 0.1;
+    x += (((double)rand() / (RAND_MAX)) - 0.5) * 0.2;
+    y += (((double)rand() / (RAND_MAX)) - 0.5) * 0.2;
 
     transform.setOrigin(tf::Vector3(x, y, 0.0));
 
@@ -101,7 +125,7 @@ public:
 
   void printReport()
   {
-    cout << "My name is " << name << ",my team is " << getTeamName() << " and I will catch you all >:)" << endl;
+    cout << "My name is " << name << ", my team is " << getTeamName() << " and I will catch you all >:)" << endl;
   }
 };
 }
