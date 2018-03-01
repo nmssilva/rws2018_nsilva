@@ -101,7 +101,7 @@ public:
 
   void printReport()
   {
-    cout << "My name is " << name << ",my team is " << getTeamName() << " and I will catch you all >:)" endl;
+    cout << "My name is " << name << ",my team is " << getTeamName() << " and I will catch you all >:)" << endl;
   }
 };
 }
