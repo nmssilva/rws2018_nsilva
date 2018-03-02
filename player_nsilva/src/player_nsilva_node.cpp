@@ -9,6 +9,7 @@
 // ROS includes
 #include <ros/ros.h>
 #include <tf/transform_broadcaster.h>
+#include <visualization_msgs/Marker.h>
 
 // RWS includes
 #include <rws2018_libs/team.h>
@@ -82,6 +83,7 @@ public:
 
   boost::shared_ptr<ros::Subscriber> sub;
   ros::NodeHandle nh;
+  ros::Publisher vis_pub;
 
   float x, y;
 
@@ -90,6 +92,8 @@ public:
     red_team = boost::shared_ptr<Team>(new Team("red"));
     green_team = boost::shared_ptr<Team>(new Team("green"));
     blue_team = boost::shared_ptr<Team>(new Team("blue"));
+
+    vis_pub = nh.advertise<visualization_msgs::Marker>("/bocas", 0);
 
     if (red_team->playerBelongsToTeam(name))
     {
@@ -128,7 +132,6 @@ public:
 
   void warp(double x, double y, double alfa)
   {
-
     transform.setOrigin(tf::Vector3(x, y, 0.0));
     transform.setOrigin(tf::Vector3(x, y, 0.0));
 
@@ -147,8 +150,10 @@ public:
     double a = 0;
 
     // AI PART
-    double displacement = 6; // computed using AI
+    double displacement = 6;  // computed using AI
     double delta_alpha = M_PI / 2;
+
+    showMarker("ja foste");
 
     // CONSTRAINSTS PART
     double dist_max = msg->dog;
@@ -157,7 +162,7 @@ public:
     if (displacement > dist_max)
       displacement = dist_max;
 
-    double delta_alpha_max = M_PI / 3;
+    double delta_alpha_max = M_PI / 30;
     if (fabs(delta_alpha) > fabs(delta_alpha_max))
       delta_alpha = delta_alpha_max * delta_alpha / fabs(delta_alpha);
 
@@ -165,14 +170,6 @@ public:
     my_move_transform.setOrigin(tf::Vector3(displacement, 0.0, 0.0));
 
     // Update position
-    /*int limit = 5;
-        if (x > limit || y > limit)
-          vf = -1;
-        else if (x < -limit || y < -limit)
-          vf = 1;
-        x += vf;
-        y += vf;*/
-
     transform.setOrigin(tf::Vector3(x, y, 0.0));
 
     tf::Quaternion q;
@@ -182,6 +179,34 @@ public:
     transform = transform * my_move_transform;
 
     br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "world", "nsilva"));
+  }
+
+  void showMarker(string text)
+  {
+    visualization_msgs::Marker marker;
+    marker.header.frame_id = "nsilva";
+    marker.header.stamp = ros::Time();
+    marker.ns = "my_namespace";
+    marker.id = 0;
+    marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+    marker.action = visualization_msgs::Marker::ADD;
+    marker.pose.position.x = 0;
+    marker.pose.position.y = 0;
+    marker.pose.position.z = 0;
+    marker.pose.orientation.x = 0.0;
+    marker.pose.orientation.y = 0.0;
+    marker.pose.orientation.z = 0.0;
+    marker.pose.orientation.w = 1.0;
+    marker.text = text;
+    marker.scale.x = 1;
+    marker.scale.y = 0.1;
+    marker.scale.z = 1;
+    marker.color.a = 1.0;  // Don't forget to set the alpha!
+    marker.color.r = 0;
+    marker.color.g = 0;
+    marker.color.b = 1.0;
+
+    vis_pub.publish(marker);
   }
 
   void printReport()
@@ -195,7 +220,7 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "nsilva");
   ros::NodeHandle nh;
-  ros::Rate loop_rate(100000);
+  ros::Rate loop_rate(10);
 
   // Creating an instance of class Player
   rws_nsilva::MyPlayer my_player("nsilva", "blue");
