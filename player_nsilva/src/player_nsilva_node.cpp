@@ -1,6 +1,7 @@
 #include <math.h>
 #include <ctime>
 #include <iostream>
+#include <string>
 #include <vector>
 
 // Boost includes
@@ -158,15 +159,17 @@ public:
 
     // AI PART
     double displacement = 6;  // computed using AI
-    double delta_alpha = getAngleToPLayer("amartins");
+    string closestPlayer = getClosestPlayer();
+    double delta_alpha = getAngleToPLayer(closestPlayer);
 
-    char marker_string[64] = "Distance to Nando Fabricio: ";
-    double distanceToPlayer = getDistancetoPlayer("amartins");
+    string marker_string = "Distance to " + closestPlayer + ": ";
+
+    double distanceToPlayer = getDistancetoPlayer(closestPlayer);
 
     char distance_string[32];
     sprintf(distance_string, "%f", distanceToPlayer);
 
-    strcat(marker_string, distance_string);
+    marker_string = marker_string + distance_string;
 
     showMarker(marker_string);
     if (isnan(delta_alpha))
@@ -215,6 +218,32 @@ public:
     }
 
     return atan2(t.getOrigin().y(), t.getOrigin().x());
+  }
+
+  string getClosestPlayer()
+  {
+    double distance = 99;
+    string player;
+
+    for (int i = 0; i < my_preys->player_names.size(); i++)
+    {
+      if (distance > getDistancetoPlayer(my_preys->player_names[i]))
+      {
+        distance = getDistancetoPlayer(my_preys->player_names[i]);
+        player = my_preys->player_names[i];
+      }
+    }
+
+    for (int i = 0; i < my_hunters->player_names.size(); i++)
+    {
+      if (distance > getDistancetoPlayer(my_preys->player_names[i]))
+      {
+        distance = getDistancetoPlayer(my_preys->player_names[i]);
+        player = my_preys->player_names[i];
+      }
+    }
+
+    return player;
   }
 
   double getDistancetoPlayer(string other_player, double time_to_wait = DEFAULT_TIME)
