@@ -9,13 +9,19 @@
 // ROS includes
 #include <ros/ros.h>
 #include <tf/transform_broadcaster.h>
+#include <tf/transform_listener.h>
 #include <visualization_msgs/Marker.h>
 
 // RWS includes
 #include <rws2018_libs/team.h>
 #include <rws2018_msgs/MakeAPlay.h>
 
+// defines
+#define DEFAULT_TIME 0.05
+
 using namespace std;
+using namespace ros;
+using namespace tf;
 
 float randomizePosition(float *x, float *y)
 {
@@ -78,12 +84,13 @@ public:
   boost::shared_ptr<Team> my_preys;
   boost::shared_ptr<Team> my_hunters;
 
-  tf::TransformBroadcaster br;
-  tf::Transform transform;
+  TransformBroadcaster br;
+  Transform transform;
 
-  boost::shared_ptr<ros::Subscriber> sub;
-  ros::NodeHandle nh;
-  ros::Publisher vis_pub;
+  boost::shared_ptr<Subscriber> sub;
+  NodeHandle nh;
+  Publisher vis_pub;
+  TransformListener listener;
 
   float x, y;
 
@@ -122,7 +129,7 @@ public:
     printf("start_x=%f start_y=%f\n", start_x, start_y);
     warp(start_x, start_y, M_PI / 2);
 
-    sub = boost::shared_ptr<ros::Subscriber>(new ros::Subscriber());
+    sub = boost::shared_ptr<Subscriber>(new Subscriber());
     *sub = nh.subscribe("/make_a_play", 100, &MyPlayer::move, this);
 
     setTeamName(argin_team);
@@ -132,14 +139,14 @@ public:
 
   void warp(double x, double y, double alfa)
   {
-    transform.setOrigin(tf::Vector3(x, y, 0.0));
-    transform.setOrigin(tf::Vector3(x, y, 0.0));
+    transform.setOrigin(Vector3(x, y, 0.0));
+    transform.setOrigin(Vector3(x, y, 0.0));
 
-    tf::Quaternion q;
+    Quaternion q;
     q.setRPY(0, 0, alfa);
     transform.setRotation(q);
 
-    br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "world", "nsilva"));
+    br.sendTransform(StampedTransform(transform, Time::now(), "world", "nsilva"));
     ROS_INFO("%s: Warping to x=%f, y=%f, alpha=%f", name.c_str(), x, y, alfa);
   }
 
@@ -151,9 +158,11 @@ public:
 
     // AI PART
     double displacement = 6;  // computed using AI
-    double delta_alpha = M_PI / 2;
+    double delta_alpha = getAngleToPLayer("amartins");
 
-    showMarker("ja foste");
+    showMarker("ANDA CA ALVARO");
+    if (isnan(delta_alpha))
+      delta_alpha = 0;
 
     // CONSTRAINSTS PART
     double dist_max = msg->dog;
@@ -166,26 +175,46 @@ public:
     if (fabs(delta_alpha) > fabs(delta_alpha_max))
       delta_alpha = delta_alpha_max * delta_alpha / fabs(delta_alpha);
 
-    tf::Transform my_move_transform;
-    my_move_transform.setOrigin(tf::Vector3(displacement, 0.0, 0.0));
+    Transform my_move_transform;
+    my_move_transform.setOrigin(Vector3(displacement, 0.0, 0.0));
 
     // Update position
-    transform.setOrigin(tf::Vector3(x, y, 0.0));
+    transform.setOrigin(Vector3(x, y, 0.0));
 
-    tf::Quaternion q;
+    Quaternion q;
     q.setRPY(0, 0, delta_alpha);
     my_move_transform.setRotation(q);
 
     transform = transform * my_move_transform;
 
-    br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "world", "nsilva"));
+    br.sendTransform(StampedTransform(transform, Time::now(), "world", "nsilva"));
+  }
+
+  double getAngleToPLayer(string other_player, double time_to_wait = DEFAULT_TIME)
+  {
+    StampedTransform t;  // The transform object
+    // Time now = Time::now(); //get the time
+    Time now = Time(0);  // get the latest transform received
+
+    try
+    {
+      listener.waitForTransform("nsilva", other_player, now, Duration(time_to_wait));
+      listener.lookupTransform("nsilva", other_player, now, t);
+    }
+    catch (TransformException &ex)
+    {
+      ROS_ERROR("%s", ex.what());
+      return NAN;
+    }
+
+    return atan2(t.getOrigin().y(), t.getOrigin().x());
   }
 
   void showMarker(string text)
   {
     visualization_msgs::Marker marker;
     marker.header.frame_id = "nsilva";
-    marker.header.stamp = ros::Time();
+    marker.header.stamp = Time();
     marker.ns = "my_namespace";
     marker.id = 0;
     marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
@@ -198,7 +227,7 @@ public:
     marker.pose.orientation.z = 0.0;
     marker.pose.orientation.w = 1.0;
     marker.text = text;
-    marker.scale.z = 0.3;
+    marker.scale.z = 0.4;
     marker.color.a = 1.0;  // Don't forget to set the alpha!
     marker.color.r = 0;
     marker.color.g = 0;
@@ -216,20 +245,20 @@ public:
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "nsilva");
-  ros::NodeHandle nh;
-  ros::Rate loop_rate(10);
+  init(argc, argv, "nsilva");
+  NodeHandle nh;
+  Rate loop_rate(10);
 
   // Creating an instance of class Player
   rws_nsilva::MyPlayer my_player("nsilva", "blue");
 
-  /*while (ros::ok())
+  /*while (ok())
   {
     my_player.move();
 
-    ros::spinOnce();
+    spinOnce();
     loop_rate.sleep();
   }*/
 
-  ros::spin();
+  spin();
 }
