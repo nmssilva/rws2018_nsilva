@@ -159,8 +159,22 @@ public:
 
     // AI PART
     double displacement = 6;  // computed using AI
-    string closestPlayer = getClosestPlayer();
-    double delta_alpha = getAngleToPLayer(closestPlayer);
+    double getaway = 0;
+    string closestPlayer = getClosestPlayer(msg);
+
+    ROS_INFO("CLOSEST %s", closestPlayer);
+    if (closestPlayer[closestPlayer.length() - 1] == '@')
+    {
+      closestPlayer = closestPlayer.substr(0, closestPlayer.size() - 1);
+      ROS_INFO("Running away from %s", closestPlayer);
+      getaway = M_PI;
+    }
+    else
+    {
+      getaway = 0;
+      ROS_INFO("Chasing %s", closestPlayer);
+    }
+    double delta_alpha = getAngleToPLayer(closestPlayer) + getaway;
 
     string marker_string = "Distance to " + closestPlayer + ": ";
 
@@ -220,32 +234,6 @@ public:
     return atan2(t.getOrigin().y(), t.getOrigin().x());
   }
 
-  string getClosestPlayer()
-  {
-    double distance = 99;
-    string player;
-
-    for (int i = 0; i < my_preys->player_names.size(); i++)
-    {
-      if (distance > getDistancetoPlayer(my_preys->player_names[i]))
-      {
-        distance = getDistancetoPlayer(my_preys->player_names[i]);
-        player = my_preys->player_names[i];
-      }
-    }
-
-    for (int i = 0; i < my_hunters->player_names.size(); i++)
-    {
-      if (distance > getDistancetoPlayer(my_preys->player_names[i]))
-      {
-        distance = getDistancetoPlayer(my_preys->player_names[i]);
-        player = my_preys->player_names[i];
-      }
-    }
-
-    return player;
-  }
-
   double getDistancetoPlayer(string other_player, double time_to_wait = DEFAULT_TIME)
   {
     StampedTransform t;  // The transform object
@@ -263,6 +251,32 @@ public:
     }
 
     return sqrt(pow(t.getOrigin().x(), 2) + pow(t.getOrigin().y(), 2));
+  }
+
+  string getClosestPlayer(const rws2018_msgs::MakeAPlay::ConstPtr &msg)
+  {
+    double distance = 99;
+    string player;
+
+    for (int i = 0; i < msg->red_alive.size(); i++)
+    {
+      if (distance > getDistancetoPlayer(msg->red_alive[i]))
+      {
+        distance = getDistancetoPlayer(msg->red_alive[i]);
+        player = msg->red_alive[i];
+      }
+    }
+
+    for (int i = 0; i < msg->green_alive.size(); i++)
+    {
+      if (distance > getDistancetoPlayer(msg->green_alive[i]))
+      {
+        distance = getDistancetoPlayer(msg->green_alive[i]);
+        player = msg->green_alive[i] + "@";
+      }
+    }
+
+    return player;
   }
 
   void showMarker(string text)
