@@ -1,16 +1,16 @@
-#include <iostream>
-#include <vector>
 #include <math.h>
 #include <ctime>
+#include <iostream>
+#include <vector>
 
 // Boost includes
 #include <boost/shared_ptr.hpp>
 
-//ROS includes
+// ROS includes
 #include <ros/ros.h>
 #include <tf/transform_broadcaster.h>
 
-//RWS includes
+// RWS includes
 #include <rws2018_libs/team.h>
 
 using namespace std;
@@ -46,7 +46,7 @@ public:
       team_name = team;
     }
     else
-      cout << "[ERROR]: For player " + this->name + " team name " + team + " is invalid." << endl;
+      ROS_ERROR("For player %s team name %s is invalid.", this->name.c_str(), team.c_str());
   }
 
   string getTeamName(void)
@@ -110,9 +110,9 @@ public:
     // Send tf
     tf::Transform transform;
 
-    //Update position
-    x += (((double)rand() / (RAND_MAX)) - 0.5) * 0.2;
-    y += (((double)rand() / (RAND_MAX)) - 0.5) * 0.2;
+    // Update position
+    x += (((double)rand() / (RAND_MAX)) - 0.5) * 0.005;
+    y += (((double)rand() / (RAND_MAX)) - 0.5) * 0.005;
 
     transform.setOrigin(tf::Vector3(x, y, 0.0));
 
@@ -125,7 +125,7 @@ public:
 
   void printReport()
   {
-    cout << "My name is " << name << ", my team is " << getTeamName() << " and I will catch you all >:)" << endl;
+    ROS_INFO("My name is %s, my team is %s and I am gonna catch you all >:)", name.c_str(), getTeamName().c_str());
   }
 };
 }
@@ -134,7 +134,7 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "nsilva");
   ros::NodeHandle nh;
-  ros::Rate loop_rate(10);
+  ros::Rate loop_rate(100000);
 
   // Creating an instance of class Player
   rws_nsilva::MyPlayer my_player("nsilva", "blue");
