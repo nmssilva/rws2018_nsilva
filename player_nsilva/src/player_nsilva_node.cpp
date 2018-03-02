@@ -15,6 +15,13 @@
 
 using namespace std;
 
+float randomizePosition(float* x, float* y)
+{
+  srand(static_cast<unsigned>(time(0)));
+  *x = (((static_cast<float>(rand()) / static_cast<float>(RAND_MAX)) - 0.5) * 10);
+  *y = (((static_cast<float>(rand()) / static_cast<float>(RAND_MAX)) - 0.5) * 10);
+}
+
 namespace rws_nsilva
 {
 class Player
@@ -70,9 +77,10 @@ public:
   boost::shared_ptr<Team> my_hunters;
 
   tf::TransformBroadcaster br;
+  tf::Transform transform;
 
-  double x, y;
-  double vf = 0.0001;
+  float x, y;
+  float vf;
 
   MyPlayer(string argin_name, string argin_team) : Player(argin_name)
   {
@@ -80,7 +88,8 @@ public:
     green_team = boost::shared_ptr<Team>(new Team("green"));
     blue_team = boost::shared_ptr<Team>(new Team("blue"));
 
-    x = y = 0.0;
+    vf = 0.0001;
+    randomizePosition(&x, &y);
 
     if (red_team->playerBelongsToTeam(name))
     {
@@ -106,20 +115,30 @@ public:
     printReport();
   }
 
+  void warp(double x, double y, double alfa)
+  {
+    transform.setOrigin(tf::Vector3(x, y, 0.0));
+
+    tf::Quaternion q;
+    q.setRPY(0, 0, alfa);
+    transform.setRotation(q);
+
+    br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "world", "nsilva"));
+    ROS_INFO("%s: Warping to x=%f, y=%f, alpha=%f", name.c_str(), x, y, alfa);
+  }
+
   void move()
   {
-    // Send tf
-    tf::Transform transform;
-
     // Update position
-    if (x > 5)
+    int limit = 5;
+    if (x > limit || y > limit)
       vf = -0.0001;
-    else if (x < -5)
+    else if (x < -limit || y < -limit)
       vf = 0.0001;
     x += (((double)rand() / (RAND_MAX))) * vf;
-    // y += (((double)rand() / (RAND_MAX)) - 0.5) * 0.005;
+    y += (((double)rand() / (RAND_MAX))) * vf;
 
-    transform.setOrigin(tf::Vector3(x, -x, 0.0));
+    transform.setOrigin(tf::Vector3(x, y, 0.0));
 
     tf::Quaternion q;
     q.setRPY(0, 0, M_PI);
@@ -135,7 +154,7 @@ public:
 };
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ros::init(argc, argv, "nsilva");
   ros::NodeHandle nh;
