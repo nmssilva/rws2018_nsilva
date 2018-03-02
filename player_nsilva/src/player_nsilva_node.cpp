@@ -72,6 +72,7 @@ public:
   tf::TransformBroadcaster br;
 
   double x, y;
+  double vf = 0.0001;
 
   MyPlayer(string argin_name, string argin_team) : Player(argin_name)
   {
@@ -111,10 +112,14 @@ public:
     tf::Transform transform;
 
     // Update position
-    x += (((double)rand() / (RAND_MAX)) - 0.5) * 0.005;
-    y += (((double)rand() / (RAND_MAX)) - 0.5) * 0.005;
+    if (x > 5)
+      vf = -0.0001;
+    else if (x < -5)
+      vf = 0.0001;
+    x += (((double)rand() / (RAND_MAX))) * vf;
+    // y += (((double)rand() / (RAND_MAX)) - 0.5) * 0.005;
 
-    transform.setOrigin(tf::Vector3(x, y, 0.0));
+    transform.setOrigin(tf::Vector3(x, -x, 0.0));
 
     tf::Quaternion q;
     q.setRPY(0, 0, M_PI);
