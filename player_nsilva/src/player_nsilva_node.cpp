@@ -160,12 +160,20 @@ public:
     double displacement = 6;  // computed using AI
     double delta_alpha = getAngleToPLayer("amartins");
 
-    showMarker("ANDA CA ALVARO");
+    char marker_string[64] = "Distance to Nando Fabricio: ";
+    double distanceToPlayer = getDistancetoPlayer("amartins");
+
+    char distance_string[32];
+    sprintf(distance_string, "%f", distanceToPlayer);
+
+    strcat(marker_string, distance_string);
+
+    showMarker(marker_string);
     if (isnan(delta_alpha))
       delta_alpha = 0;
 
     // CONSTRAINSTS PART
-    double dist_max = msg->dog;
+    double dist_max = msg->turtle;
     double dist_with_constrainsts;
 
     if (displacement > dist_max)
@@ -193,7 +201,6 @@ public:
   double getAngleToPLayer(string other_player, double time_to_wait = DEFAULT_TIME)
   {
     StampedTransform t;  // The transform object
-    // Time now = Time::now(); //get the time
     Time now = Time(0);  // get the latest transform received
 
     try
@@ -208,6 +215,25 @@ public:
     }
 
     return atan2(t.getOrigin().y(), t.getOrigin().x());
+  }
+
+  double getDistancetoPlayer(string other_player, double time_to_wait = DEFAULT_TIME)
+  {
+    StampedTransform t;  // The transform object
+    Time now = Time(0);  // get the latest transform received
+
+    try
+    {
+      listener.waitForTransform("nsilva", other_player, now, Duration(time_to_wait));
+      listener.lookupTransform("nsilva", other_player, now, t);
+    }
+    catch (TransformException &ex)
+    {
+      ROS_ERROR("%s", ex.what());
+      return NAN;
+    }
+
+    return sqrt(pow(t.getOrigin().x(), 2) + pow(t.getOrigin().y(), 2));
   }
 
   void showMarker(string text)
@@ -251,14 +277,6 @@ int main(int argc, char **argv)
 
   // Creating an instance of class Player
   rws_nsilva::MyPlayer my_player("nsilva", "blue");
-
-  /*while (ok())
-  {
-    my_player.move();
-
-    spinOnce();
-    loop_rate.sleep();
-  }*/
 
   spin();
 }
