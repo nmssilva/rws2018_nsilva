@@ -45,6 +45,8 @@
   <build_depend>std_msgs</build_depend>
   <build_depend>rws2018_libs</build_depend>
   <build_depend>tf</build_depend>
+  <build_depend>rws2018_msgs</build_depend>
+  <build_export_depend>rws2018_msgs</build_export_depend>
   <build_export_depend>tf</build_export_depend>
   <build_export_depend>rws2018_libs</build_export_depend>
   <build_export_depend>roscpp</build_export_depend>
@@ -54,6 +56,7 @@
   <exec_depend>rospy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>tf</exec_depend>
+  <exec_depend>rws2018_msgs</exec_depend>
   <!-- The export tag contains other, unspecified, tags -->
   <export>
     <!-- Other tools can request additional information be placed here -->
