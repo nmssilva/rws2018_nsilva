@@ -178,7 +178,7 @@ public:
     // if outside arena, get away
     if (x > 5 || x < -5 || y > 5 || y < -5)
     {
-      getaway = M_PI;
+      closestPlayer = "world";
     }
     double delta_alpha = getAngleToPLayer(closestPlayer) + getaway;
 
