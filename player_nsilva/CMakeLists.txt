@@ -14,6 +14,8 @@ find_package(catkin REQUIRED COMPONENTS
   rws2018_libs
   rws2018_msgs
   tf
+  pcl_conversions
+  pcl_ros
 )
 
 ## System dependencies are found with CMake's conventions

@@ -13,6 +13,13 @@
 #include <tf/transform_listener.h>
 #include <visualization_msgs/Marker.h>
 
+// PCL specific includes
+#include <sensor_msgs/PointCloud2.h>
+#include <pcl_conversions/pcl_conversions.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <sensor_msgs/point_cloud2_iterator.h>
+
 // RWS includes
 #include <rws2018_libs/team.h>
 #include <rws2018_msgs/MakeAPlay.h>
@@ -31,6 +38,36 @@ float randomizePosition(float *x, float *y)
   *x = (((static_cast<float>(rand()) / static_cast<float>(RAND_MAX)) - 0.5) * 10);
   *y = (((static_cast<float>(rand()) / static_cast<float>(RAND_MAX)) - 0.5) * 10);
 }
+
+double x_sum = 0;
+void cloud_cb(const sensor_msgs::PointCloud2Ptr &input)
+{
+  for (int i = 0; i < input->height; i++)
+  {
+    for (int j = 0; j < input->width; j++)
+    {
+
+      float x, y, z;
+      x = y = z = 0;
+
+      unsigned char *pt;
+
+      pt = (input->data).data() + input->row_step * i + j * input->point_step;
+
+      memcpy(&x, pt, 4);
+
+      //memcpy(&y, pt + 4, 4);
+
+      //memcpy(&z, pt + 8, 4);
+
+      x_sum += x;
+    }
+  }
+
+  ROS_INFO("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA %f", x_sum);
+}
+
+string my_pc_guess = "onion";
 
 namespace rws_nsilva
 {
@@ -94,6 +131,7 @@ public:
   Publisher vis_pub;
   boost::shared_ptr<ros::ServiceServer> game_query_srv;
   TransformListener listener;
+  ros::Subscriber sub_pc;
 
   float x, y;
 
@@ -107,6 +145,8 @@ public:
 
     game_query_srv = boost::shared_ptr<ros::ServiceServer>(new ros::ServiceServer());
     *game_query_srv = nh.advertiseService("/" + name + "/game_query", &MyPlayer::respondToGameQuery, this);
+    // Create a ROS subscriber for the input point cloud
+    sub_pc = nh.subscribe("/object_point_cloud", 1, cloud_cb);
 
     if (red_team->playerBelongsToTeam(name))
     {
@@ -165,6 +205,11 @@ public:
     return true;
   }
 
+  string guessFunc()
+  {
+    return "";
+  }
+
   void move(const rws2018_msgs::MakeAPlay::ConstPtr &msg)
   {
     double x = transform.getOrigin().x();
@@ -175,6 +220,7 @@ public:
     double displacement = 6; // computed using AI
     string closestPlayer = getClosestPlayer(msg);
 
+    my_pc_guess = guessFunc();
     ROS_INFO("CLOSEST %s", closestPlayer.c_str());
     if (closestPlayer[closestPlayer.length() - 1] == '@')
     {
@@ -334,7 +380,7 @@ int main(int argc, char **argv)
 {
   init(argc, argv, "nsilva");
   NodeHandle nh;
-  Rate loop_rate(10);
+  Rate loop_rate(11);
 
   // Creating an instance of class Player
   rws_nsilva::MyPlayer my_player("nsilva", "blue");
