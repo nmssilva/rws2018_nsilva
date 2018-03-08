@@ -16,6 +16,7 @@
 // RWS includes
 #include <rws2018_libs/team.h>
 #include <rws2018_msgs/MakeAPlay.h>
+#include <rws2018_msgs/GameQuery.h>
 
 // defines
 #define DEFAULT_TIME 0.05
@@ -91,6 +92,7 @@ public:
   boost::shared_ptr<Subscriber> sub;
   NodeHandle nh;
   Publisher vis_pub;
+  boost::shared_ptr<ros::ServiceServer> game_query_srv;
   TransformListener listener;
 
   float x, y;
@@ -102,6 +104,9 @@ public:
     blue_team = boost::shared_ptr<Team>(new Team("blue"));
 
     vis_pub = nh.advertise<visualization_msgs::Marker>("/bocas", 0);
+
+    game_query_srv = boost::shared_ptr<ros::ServiceServer>(new ros::ServiceServer());
+    *game_query_srv = nh.advertiseService("/" + name + "/game_query", &MyPlayer::respondToGameQuery, this);
 
     if (red_team->playerBelongsToTeam(name))
     {
@@ -149,6 +154,15 @@ public:
 
     br.sendTransform(StampedTransform(transform, Time::now(), "world", "nsilva"));
     ROS_INFO("%s: Warping to x=%f, y=%f, alpha=%f", name.c_str(), x, y, alfa);
+  }
+
+  bool respondToGameQuery(rws2018_msgs::GameQuery::Request &req,
+                          rws2018_msgs::GameQuery::Response &res)
+  {
+    ROS_WARN("I am %s and I am responding to a service request!", name.c_str());
+
+    res.resposta = "nao percebo nada disto";
+    return true;
   }
 
   void move(const rws2018_msgs::MakeAPlay::ConstPtr &msg)
