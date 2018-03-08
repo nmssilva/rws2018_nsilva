@@ -162,17 +162,23 @@ public:
     double getaway = 0;
     string closestPlayer = getClosestPlayer(msg);
 
-    ROS_INFO("CLOSEST %s", closestPlayer);
+    ROS_INFO("CLOSEST %s", closestPlayer.c_str());
     if (closestPlayer[closestPlayer.length() - 1] == '@')
     {
       closestPlayer = closestPlayer.substr(0, closestPlayer.size() - 1);
-      ROS_INFO("Running away from %s", closestPlayer);
+      ROS_INFO("Running away from %s", closestPlayer.c_str());
       getaway = M_PI;
     }
     else
     {
       getaway = 0;
-      ROS_INFO("Chasing %s", closestPlayer);
+      ROS_INFO("Chasing %s", closestPlayer.c_str());
+    }
+
+    // if outside arena, get away
+    if (x > 5 || x < -5 || y > 5 || y < -5)
+    {
+      getaway = M_PI;
     }
     double delta_alpha = getAngleToPLayer(closestPlayer) + getaway;
 
