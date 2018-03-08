@@ -158,8 +158,7 @@ public:
     double a = 0;
 
     // AI PART
-    double displacement = 6;  // computed using AI
-    double getaway = 0;
+    double displacement = 6; // computed using AI
     string closestPlayer = getClosestPlayer(msg);
 
     ROS_INFO("CLOSEST %s", closestPlayer.c_str());
@@ -167,11 +166,10 @@ public:
     {
       closestPlayer = closestPlayer.substr(0, closestPlayer.size() - 1);
       ROS_INFO("Running away from %s", closestPlayer.c_str());
-      getaway = M_PI;
+      closestPlayer = "world";
     }
     else
     {
-      getaway = 0;
       ROS_INFO("Chasing %s", closestPlayer.c_str());
     }
 
@@ -180,7 +178,7 @@ public:
     {
       closestPlayer = "world";
     }
-    double delta_alpha = getAngleToPLayer(closestPlayer) + getaway;
+    double delta_alpha = getAngleToPLayer(closestPlayer);
 
     string marker_string = "Distance to " + closestPlayer + ": ";
 
@@ -223,8 +221,8 @@ public:
 
   double getAngleToPLayer(string other_player, double time_to_wait = DEFAULT_TIME)
   {
-    StampedTransform t;  // The transform object
-    Time now = Time(0);  // get the latest transform received
+    StampedTransform t; // The transform object
+    Time now = Time(0); // get the latest transform received
 
     try
     {
@@ -242,8 +240,8 @@ public:
 
   double getDistancetoPlayer(string other_player, double time_to_wait = DEFAULT_TIME)
   {
-    StampedTransform t;  // The transform object
-    Time now = Time(0);  // get the latest transform received
+    StampedTransform t; // The transform object
+    Time now = Time(0); // get the latest transform received
 
     try
     {
@@ -303,7 +301,7 @@ public:
     marker.pose.orientation.w = 1.0;
     marker.text = text;
     marker.scale.z = 0.4;
-    marker.color.a = 1.0;  // Don't forget to set the alpha!
+    marker.color.a = 1.0; // Don't forget to set the alpha!
     marker.color.r = 0;
     marker.color.g = 0;
     marker.color.b = 1;
